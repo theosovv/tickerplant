@@ -1,0 +1,72 @@
+syntax = "proto3";
+package miniterm;
+
+service Core {
+  rpc SubscribeMarket (MarketRequest) returns (stream MarketEvent);
+  rpc GetSnapshot (SnapshotRequest) returns (BookSnapshot);
+  rpc PlaceOrder (OrderRequest) returns (OrderAck);
+  rpc CancelOrder (CancelRequest) returns (OrderAck);
+  rpc GetAccount (AccountRequest) returns (AccountState);
+}
+
+message MarketRequest { repeated string symbols = 1; }
+message MarketEvent {
+  oneof event { Tick tick = 1; BookDelta delta = 2; Fill fill = 3; }
+}
+message Tick {
+  string symbol = 1;
+  double price = 2;
+  double size = 3;
+  int64 ts = 4;
+  int64 seq = 5;
+}
+message BookDelta {
+  string symbol = 1;
+  string side = 2;
+  double price = 3;
+  double size = 4;
+  int64 seq = 5;
+}
+message Fill {
+  string order_id = 1;
+  string symbol = 2;
+  double price = 3;
+  double qty = 4;
+  string side = 5;
+}
+message OrderRequest {
+  string client_order_id = 1;
+  string symbol = 2;
+  string side = 3;
+  string type = 4;
+  double qty = 5;
+  double limit_price = 6;
+  string tif = 7;
+}
+message OrderAck {
+  bool ok = 1;
+  string order_id = 2;
+  string error = 3;
+}
+message BookSnapshot {
+  string symbol = 1;
+  int64 seq = 2;
+  repeated Level bids = 3;
+  repeated Level asks = 4;
+}
+message Level {
+  double price = 1;
+  double size = 2;
+}
+message AccountState {
+  repeated Position positions = 1;
+  double cash = 2;
+}
+message Position {
+  string symbol = 1;
+  double qty = 2;
+  double avg_entry = 3;
+}
+message SnapshotRequest { string symbol = 1; }
+message CancelRequest { string order_id = 1; }
+message AccountRequest {}
